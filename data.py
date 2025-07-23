@@ -89,3 +89,45 @@ production = predict_production(
 )
 
 print(f"Predicted Total Production: {production} hectares")
+
+
+''' --------------------------------------------------------------------------------------------------------------------------------------------- '''
+
+def predict_production(year, season, district, sown_hect, previous_production):
+
+    # Encode inputs
+    season_encoded = season_map.get(season, 0)
+    try:
+        district_encoded = district_list.index(district.upper())
+    except ValueError:
+        raise ValueError(f"District '{district}' not found in the dataset.")
+
+    # last year extracted
+    if isinstance(year, str) and "/" in year:
+        last_year = int(year.split("/")[-1])
+    else:
+        last_year = int(year)  # If already a single year
+
+    # Create input DataFrame
+    input_df = pd.DataFrame([{
+        'Year': last_year,
+        'Season_encoded': season_encoded,
+        'District_encoded': district_encoded,
+        'Sown(hect)': sown_hect,
+        'Previous_Production': previous_production
+    }])
+
+    # Predict Harvested Extent
+    predicted_extent = model_extent.predict(
+        input_df[['Year', 'Season_encoded', 'District_encoded', 'Sown(hect)', 'Previous_Production']]
+    )[0]
+
+    return round(predicted_extent, 2)
+
+production = predict_production(
+    year=1999/2000,
+    season='Maha',
+    district='BATTICALOA',
+    sown_hect=39269,
+    previous_production=86100
+)
